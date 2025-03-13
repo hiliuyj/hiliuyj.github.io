@@ -1,0 +1,12 @@
+
+WH
+CFNAT for win 跑出的数据中心：
+数据中心	出现次数	城市		平均延迟	最低延迟
+LAX  		2336		洛杉矶		182ms		146ms
+SJC  		979			圣何塞		177ms		139ms
+HKG  		57			香港		116ms		96ms
+SEA  		5			西雅图		200ms		188ms
+ARN  		4			斯德哥尔摩	273ms		256ms
+MRS			1			马赛		118ms		118ms
+CDG			1			巴黎		179ms		179ms
+ORD			1			芝加哥		215ms		215ms
