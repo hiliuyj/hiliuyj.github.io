@@ -1,0 +1,467 @@
+diff -Naur ./openwrt/target/linux/ramips/dts/mt7621_zte_e8820s.dts ./siwind_openwrt/target/linux/ramips/dts/mt7621_zte_e8820s.dts
+--- ./openwrt/target/linux/ramips/dts/mt7621_zte_e8820s.dts	1970-01-01 08:00:00.000000000 +0800
++++ ./siwind_openwrt/target/linux/ramips/dts/mt7621_zte_e8820s.dts	2025-08-25 08:53:00.239062512 +0800
+@@ -0,0 +1,196 @@
++#include "mt7621.dtsi"
++
++#include <dt-bindings/gpio/gpio.h>
++#include <dt-bindings/input/input.h>
++#include <dt-bindings/leds/common.h>
++
++/ {
++	compatible = "zte,e8820s", "mediatek,mt7621-soc";
++	model = "ZTE E8820S";
++
++	aliases {
++		led-boot = &led_sys;
++		led-failsafe = &led_sys;
++		led-running = &led_sys;
++		led-upgrade = &led_sys;
++		label-mac-device = &gmac0;
++	};
++
++	leds {
++		compatible = "gpio-leds";
++
++		led_sys: sys {
++			label = "white:sys";
++			gpios = <&gpio 3 GPIO_ACTIVE_LOW>;
++		};
++
++	};
++
++	keys {
++		compatible = "gpio-keys";
++
++		reset {
++			label = "reset";
++			gpios = <&gpio 18 GPIO_ACTIVE_LOW>;
++			linux,code = <KEY_RESTART>;
++		};
++
++		wps {
++			label = "wps";
++			gpios = <&gpio 8 GPIO_ACTIVE_LOW>;
++			linux,code = <KEY_WPS_BUTTON>;
++		};
++
++		wifi {
++			label = "wifi";
++			gpios = <&gpio 10 GPIO_ACTIVE_LOW>;
++			linux,code = <KEY_RFKILL>;
++		};
++	};
++};
++
++&nand {
++	status = "okay";
++
++	partitions {
++		compatible = "fixed-partitions";
++		#address-cells = <1>;
++		#size-cells = <1>;
++
++		partition@0 {
++			label = "u-boot";
++			reg = <0x0 0x80000>;
++			read-only;
++		};
++
++		partition@80000 {
++			label = "u-boot-env";
++			reg = <0x80000 0x80000>;
++			read-only;
++		};
++
++		partition@100000 {
++			label = "Factory";
++			reg = <0x100000 0x40000>;
++			read-only;
++
++			nvmem-layout {
++				compatible = "fixed-layout";
++				#address-cells = <1>;
++				#size-cells = <1>;
++				
++				eeprom_factory_0: eeprom@0 {
++					reg = <0x0 0x400>;
++				};
++
++				eeprom_factory_8000: eeprom@8000 {
++					reg = <0x8000 0x200>;
++				};
++
++				macaddr_factory_4: macaddr@4 {
++					reg = <0x4 0x6>;
++				};
++
++				macaddr_factory_e000: macaddr@e000 {
++					reg = <0xe000 0x6>;
++				};
++
++				macaddr_factory_e006: macaddr@e006 {
++					reg = <0xe006 0x6>;
++				};
++			};
++		};
++
++		partition@140000 {
++			label = "kernel";
++			reg = <0x140000 0x400000>;
++		};
++
++		partition@540000 {
++			label = "ubi";
++			reg = <0x540000 0x7A00000>;
++		};
++	};
++};
++
++&pcie {
++	status = "okay";
++	reset-gpios = <&gpio 19 GPIO_ACTIVE_LOW>,
++				  <&gpio 4 GPIO_ACTIVE_LOW>;
++};
++
++&pcie0 {
++	wifi@0,0 {
++		reg = <0x0000 0 0 0 0>;
++		nvmem-cells = <&eeprom_factory_0>, <&macaddr_factory_e000>;
++		nvmem-cell-names = "eeprom", "mac-address";
++
++		led {
++			led-active-low;
++		};
++	};
++};
++
++&pcie1 {
++	wifi@0,0 {
++		reg = <0x0000 0 0 0 0>;
++		nvmem-cells = <&eeprom_factory_8000>, <&macaddr_factory_e006>;
++		nvmem-cell-names = "eeprom", "mac-address";
++		ieee80211-freq-limit = <5000000 6000000>;
++
++		led {
++			led-sources = <2>;
++			led-active-low;
++		};
++	};
++};
++
++&gmac0 {
++	nvmem-cells = <&macaddr_factory_e000>;
++	nvmem-cell-names = "mac-address";
++};
++
++&gmac1 {
++	status = "okay";
++	label = "wan";
++	phy-handle = <&ethphy4>;
++
++	nvmem-cells = <&macaddr_factory_e000>;
++	nvmem-cell-names = "mac-address";
++	mac-address-increment = <1>;
++};
++
++&ethphy0 {
++	/delete-property/ interrupts;
++};
++
++&switch0 {
++	ports {
++		port@0 {
++			status = "okay";
++			label = "lan1";
++		};
++
++		port@1 {
++			status = "okay";
++			label = "lan2";
++		};
++
++		port@2 {
++			status = "okay";
++			label = "lan3";
++		};
++
++		port@3 {
++			status = "okay";
++			label = "lan4";
++		};
++	};
++};
++
++&state_default {
++	gpio {
++		groups = "i2c", "jtag", "uart2", "uart3", "wdt";
++		function = "gpio";
++	};
++};
+diff -Naur ./openwrt/target/linux/ramips/dts/mt7621_zte_e8820v2.dts ./siwind_openwrt/target/linux/ramips/dts/mt7621_zte_e8820v2.dts
+--- ./openwrt/target/linux/ramips/dts/mt7621_zte_e8820v2.dts	1970-01-01 08:00:00.000000000 +0800
++++ ./siwind_openwrt/target/linux/ramips/dts/mt7621_zte_e8820v2.dts	2025-08-25 08:53:00.239062512 +0800
+@@ -0,0 +1,195 @@
++#include "mt7621.dtsi"
++
++#include <dt-bindings/gpio/gpio.h>
++#include <dt-bindings/input/input.h>
++#include <dt-bindings/leds/common.h>
++
++/ {
++	compatible = "zte,e8820v2", "mediatek,mt7621-soc";
++	model = "ZTE E8820V2";
++
++	aliases {
++		led-boot = &led_sys;
++		led-failsafe = &led_sys;
++		led-running = &led_sys;
++		led-upgrade = &led_sys;
++		label-mac-device = &gmac0;
++	};
++
++	leds {
++		compatible = "gpio-leds";
++
++		led_sys: sys {
++			label = "white:sys";
++			gpios = <&gpio 29 GPIO_ACTIVE_LOW>;
++		};
++
++		led_power: power {
++			label = "white:power";
++			gpios = <&gpio 31 GPIO_ACTIVE_LOW>;
++		};
++	};
++
++	keys {
++		compatible = "gpio-keys";
++
++		reset {
++			label = "reset";
++			gpios = <&gpio 18 GPIO_ACTIVE_LOW>;
++			linux,code = <KEY_RESTART>;
++		};
++
++		wps {
++			label = "wps";
++			gpios = <&gpio 24 GPIO_ACTIVE_LOW>;
++			linux,code = <KEY_WPS_BUTTON>;
++		};
++	};
++};
++
++&spi0 {
++	status = "okay";
++
++	flash@0 {
++		compatible = "jedec,spi-nor";
++		reg = <0>;
++		spi-max-frequency = <10000000>;
++		broken-flash-reset;
++
++		partitions {
++			compatible = "fixed-partitions";
++			#address-cells = <1>;
++			#size-cells = <1>;
++
++			partition@0 {
++				label = "u-boot";
++				reg = <0x0 0x30000>;
++				read-only;
++			};
++
++			partition@30000 {
++				label = "u-boot-env";
++				reg = <0x30000 0x10000>;
++				read-only;
++			};
++
++			partition@40000 {
++				label = "factory";
++				reg = <0x40000 0x10000>;
++				read-only;
++
++				nvmem-layout {
++					compatible = "fixed-layout";
++					#address-cells = <1>;
++					#size-cells = <1>;
++					
++					eeprom_factory_0: eeprom@0 {
++						reg = <0x0 0x400>;
++					};
++
++					eeprom_factory_8000: eeprom@8000 {
++						reg = <0x8000 0x200>;
++					};
++
++					macaddr_factory_4: macaddr@4 {
++						reg = <0x4 0x6>;
++					};
++
++					macaddr_factory_e000: macaddr@e000 {
++						reg = <0xe000 0x6>;
++					};
++
++					macaddr_factory_e006: macaddr@e006 {
++						reg = <0xe006 0x6>;
++					};
++				};
++			};
++
++			partition@50000 {
++				compatible = "denx,uimage";
++				label = "firmware";
++				reg = <0x50000 0xfb0000>;
++			};
++		};
++	};
++};
++
++&pcie {
++	status = "okay";
++	reset-gpios = <&gpio 19 GPIO_ACTIVE_LOW>,
++				  <&gpio 4 GPIO_ACTIVE_LOW>;
++};
++
++&pcie0 {
++	wifi@0,0 {
++		reg = <0x0000 0 0 0 0>;
++		nvmem-cells = <&eeprom_factory_0>, <&macaddr_factory_e000>;
++		nvmem-cell-names = "eeprom", "mac-address";
++
++		led {
++			led-active-low;
++		};
++	};
++};
++
++&pcie1 {
++	wifi@0,0 {
++		reg = <0x0000 0 0 0 0>;
++		nvmem-cells = <&eeprom_factory_8000>, <&macaddr_factory_e006>;
++		nvmem-cell-names = "eeprom", "mac-address";
++
++		ieee80211-freq-limit = <5000000 6000000>;
++		led {
++			led-sources = <2>;
++			led-active-low;
++		};
++	};
++};
++
++
++&gmac0 {
++	nvmem-cells = <&macaddr_factory_e000>;
++	nvmem-cell-names = "mac-address";
++};
++
++&ethphy0 {
++	/delete-property/ interrupts;
++};
++
++&switch0 {
++	ports {
++		port@0 {
++			status = "okay";
++			label = "lan1";
++		};
++
++		port@1 {
++			status = "okay";
++			label = "lan2";
++		};
++
++		port@2 {
++			status = "okay";
++			label = "lan3";
++		};
++
++		port@3 {
++			status = "okay";
++			label = "lan4";
++		};
++
++		port@4 {
++			status = "okay";
++			label = "wan";
++			nvmem-cells = <&macaddr_factory_e006>;
++			nvmem-cell-names = "mac-address";
++		};
++	};
++};
++
++&state_default {
++	gpio {
++		groups = "i2c", "uart2", "uart3", "wdt";
++		function = "gpio";
++	};
++};
+diff -Naur ./openwrt/target/linux/ramips/image/mt7621.mk ./siwind_openwrt/target/linux/ramips/image/mt7621.mk
+--- ./openwrt/target/linux/ramips/image/mt7621.mk	2025-08-26 09:40:15.697250560 +0800
++++ ./siwind_openwrt/target/linux/ramips/image/mt7621.mk	2025-08-25 08:53:00.257062519 +0800
+@@ -3587,6 +3600,35 @@
+ endef
+ TARGET_DEVICES += zio_freezio
+ 
++define Device/zte_e8820s
++  $(Device/dsa-migration)
++  $(Device/uimage-lzma-loader)
++  BLOCKSIZE := 128k
++  PAGESIZE := 2048
++  KERNEL_SIZE := 4096k
++  UBINIZE_OPTS := -E 5
++  IMAGE_SIZE := 130304k
++  IMAGES += factory.bin
++  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
++  IMAGE/factory.bin := append-kernel | pad-to $$(KERNEL_SIZE) | append-ubi | \
++	check-size
++  DEVICE_VENDOR := ZTE
++  DEVICE_MODEL := E8820S
++  DEVICE_PACKAGES := kmod-mt7603 kmod-mt76x2 kmod-usb3 uboot-envtools
++endef
++TARGET_DEVICES += zte_e8820s
++
++define Device/zte_e8820v2
++  $(Device/dsa-migration)
++  $(Device/uimage-lzma-loader)
++  IMAGE_SIZE := 16064k
++  DEVICE_VENDOR := ZTE
++  DEVICE_MODEL := E8820V2
++  DEVICE_PACKAGES := kmod-mt7603 kmod-mt76x2 kmod-usb2 \
++	  kmod-usb-ledtrig-usbport
++endef
++TARGET_DEVICES += zte_e8820v2
++
+ define Device/zyxel_lte3301-plus
+   $(Device/nand)
+   DEVICE_VENDOR := Zyxel
+diff -Naur ./openwrt/target/linux/ramips/mt7621/base-files/etc/board.d/01_leds ./siwind_openwrt/target/linux/ramips/mt7621/base-files/etc/board.d/01_leds
+--- ./openwrt/target/linux/ramips/mt7621/base-files/etc/board.d/01_leds	2025-08-26 09:40:15.697250560 +0800
++++ ./siwind_openwrt/target/linux/ramips/mt7621/base-files/etc/board.d/01_leds	2025-08-25 08:53:00.257062519 +0800
+@@ -269,6 +269,14 @@
+ 	ucidef_set_led_netdev "lan" "lan" "green:lan" "br-lan" "link tx rx"
+ 	ucidef_set_led_netdev "wan" "wan" "green:wan" "wan" "link tx rx"
+ 	ucidef_set_led_netdev "wan-off" "wan-off" "red:wan" "wan" "link"
++    ;;
++zte,e8820s)
++    ucidef_set_led_netdev "sys" "SYS_LED" "white:sys" "eth0" "tx rx"
++    ucidef_set_led_timer "power" "POWER_LED" "white:sys" "100" "8000"
++    ;;
++zte,e8820v2)
++    ucidef_set_led_netdev "sys" "SYS_LED" "white:sys" "eth0" "tx rx"
++    ucidef_set_led_timer "power" "POWER_LED" "white:power" "100" "8000"
+ 	;;
+ zyxel,lte3301-plus)
+ 	ucidef_set_led_netdev "internet" "internet" "white:internet" "wwan0"
+diff -Naur ./openwrt/target/linux/ramips/mt7621/base-files/lib/upgrade/platform.sh ./siwind_openwrt/target/linux/ramips/mt7621/base-files/lib/upgrade/platform.sh
+--- ./openwrt/target/linux/ramips/mt7621/base-files/lib/upgrade/platform.sh	2025-08-26 09:40:15.697250560 +0800
++++ ./siwind_openwrt/target/linux/ramips/mt7621/base-files/lib/upgrade/platform.sh	2025-08-25 08:53:00.257062519 +0800
+@@ -150,6 +151,7 @@
+ 	xiaomi,mi-router-cr6609|\
+ 	xiaomi,redmi-router-ac2100|\
+ 	z-router,zr-2660|\
++	zte,e8820s|\
+ 	zyxel,nwa50ax|\
+ 	zyxel,nwa55axe)
+ 		nand_do_upgrade "$1"
