@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CMSIS-DAP 技术方案与实现指南</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: linear-gradient(135deg, #2c3e50 0%, #4a6491 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(90deg, #3498db, #2ecc71);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .info-box {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-left: 4px solid #3498db;
+        }
+
+        .info-box.warning {
+            border-left-color: #e74c3c;
+            background: #fff5f5;
+        }
+
+        .info-box.success {
+            border-left-color: #2ecc71;
+            background: #f0fff4;
+        }
+
+        h2 {
+            color: #2c3e50;
+            margin: 1.5rem 0 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #3498db;
+        }
+
+        h3 {
+            color: #34495e;
+            margin: 1rem 0 0.5rem;
+        }
+
+        .content {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .content h1, .content h2, .content h3, .content h4, .content h5, .content h6 {
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .content p {
+            margin-bottom: 1rem;
+        }
+
+        .content ul, .content ol {
+            margin-left: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .content li {
+            margin-bottom: 0.5rem;
+        }
+
+        .code-block {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 1rem;
+            border-radius: 5px;
+            margin: 1rem 0;
+            overflow-x: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+        }
+
+        .code-block pre {
+            margin: 0;
+        }
+
+        .highlight {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        .note {
+            background: #fff9e6;
+            border-left: 4px solid #f39c12;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 5px 5px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            background: white;
+            border-radius: 5px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        th {
+            background: #3498db;
+            color: white;
+            padding: 0.75rem;
+            text-align: left;
+        }
+
+        td {
+            padding: 0.75rem;
+            border-bottom: 1px solid #ddd;
+        }
+
+        tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid #ddd;
+            color: #7f8c8d;
+        }
+
+        .content pre {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 1rem;
+            border-radius: 5px;
+            margin: 1rem 0;
+            overflow-x: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .content {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>CMSIS-DAP 技术方案与实现指南</h1>
+        </header>
+<h2>目录</h2>
+<ol>
+<li><a href="#1-技术方案概览">技术方案概览</a></li>
+<li><a href="#2-基础实现方案">基础实现方案</a></li>
+<li><a href="#3-spi加速方案">SPI加速方案</a></li>
+<li><a href="#4-高级优化方案">高级优化方案</a></li>
+</ol>
+<hr />
+<h2>1. 技术方案概览</h2>
+<h3>1.1 实现方案分类</h3>
+<table>
+<thead>
+<tr>
+<th>方案类型</th>
+<th>性能等级</th>
+<th>成本范围</th>
+<th>技术复杂度</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>基础Bit-bang</td>
+<td>低</td>
+<td>$5-15</td>
+<td>低</td>
+<td>学习验证</td>
+</tr>
+<tr>
+<td>SPI硬件加速</td>
+<td>中高</td>
+<td>$15-35</td>
+<td>中</td>
+<td>专业应用</td>
+</tr>
+<tr>
+<td>DMA并行传输</td>
+<td>高</td>
+<td>$25-50</td>
+<td>进阶</td>
+<td>高性能</td>
+</tr>
+<tr>
+<td>FPGA实现</td>
+<td>极高</td>
+<td>$80-150</td>
+<td>商业级</td>
+<td>顶级</td>
+</tr>
+</tbody>
+</table>
+<h3>1.2 技术路线图</h3>
+<p>基础级 → 进阶级 → 专业级 → 商业级
+   ↓         ↓         ↓
+Bit-bang → SPI加速 → DMA并行 → FPGA
+   ↓         ↓         ↓
+1MHz     → 10MHz   → 50MHz   → 100MHz+</p>
+<hr />
+<h2>2. 基础实现方案</h2>
+<h3>2.1 Free-DAP (入门级推荐)</h3>
+<p><strong>特点:</strong>
+- 开源许可: BSD-3-Clause
+- 代码量: ~2000行核心代码
+- 内存占用: &lt;16KB Flash, &lt;2KB RAM</p>
+<p><strong>核心优势:</strong>
+- 易于移植到各种MCU平台
+- 完整的SWD和JTAG支持
+- 活跃社区支持</p>
+<p><strong>资源链接:</strong>
+- GitHub仓库: https://github.com/ataradov/free-dap
+- 文档: https://ataradov.github.io/free-dap/
+- 二进制文件: https://github.com/ataradov/free-dap/blob/master/bin/free_dap_rp2040.uf2</p>
+<h3>2.2 RP2040实现 (快速入门)</h3>
+<p><strong>硬件需求:</strong>
+- 树莓派Pico ($4-5)
+- USB Type-C线
+- 连接线</p>
+<p><strong>引脚配置:</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="cp">#define PIN_SWCLK_TCK   11</span>
+<span class="cp">#define PIN_SWDIO_TMS   12</span>
+<span class="cp">#define PIN_TDI        13</span>
+<span class="cp">#define PIN_TDO        14</span>
+<span class="cp">#define PIN_nRESET     15</span>
+</code></pre></div>
+
+<hr />
+<h2>3. SPI加速方案</h2>
+<h3>3.1 STM32F405 DAP405 (SPI加速)</h3>
+<p><strong>核心创新:</strong>
+- 利用STM32 SPI外设实现JTAG/SWD时序
+- 双向SPI控制解决SWDIO问题
+- USB 2.0 High-Speed接口</p>
+<p><strong>技术特点:</strong>
+- 时钟频率: 10-20MHz (vs 传统1-2MHz)
+- 下载速度: 500-800KB/s
+- CPU占用率降低80%</p>
+<p><strong>关键代码实现:</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="c1">// SPI双向控制函数</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">SPI_SwitchPhaseToWrite</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">SPI1</span><span class="o">-&gt;</span><span class="n">CR1</span><span class="w"> </span><span class="o">&amp;=</span><span class="w"> </span><span class="o">~</span><span class="n">SPI_CR1_BIDIMODE</span><span class="p">;</span><span class="w">  </span><span class="c1">// 输出模式</span>
+<span class="w">    </span><span class="n">SPI1</span><span class="o">-&gt;</span><span class="n">CR1</span><span class="w"> </span><span class="o">|=</span><span class="w"> </span><span class="n">SPI_CR1_BIDIOE</span><span class="p">;</span><span class="w">    </span><span class="c1">// 启用双向</span>
+<span class="p">}</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">SPI_SwitchPhaseToListen</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">SPI1</span><span class="o">-&gt;</span><span class="n">CR1</span><span class="w"> </span><span class="o">|=</span><span class="w"> </span><span class="n">SPI_CR1_BIDIMODE</span><span class="p">;</span><span class="w">   </span><span class="c1">// 输入模式</span>
+<span class="w">    </span><span class="n">SPI1</span><span class="o">-&gt;</span><span class="n">CR1</span><span class="w"> </span><span class="o">&amp;=</span><span class="w"> </span><span class="o">~</span><span class="n">SPI_CR1_BIDIOE</span><span class="p">;</span><span class="w">    </span><span class="c1">// 禁用双向输出</span>
+<span class="p">}</span>
+
+<span class="c1">// SWD传输核心函数</span>
+<span class="kt">uint8_t</span><span class="w"> </span><span class="nf">SWD_Transfer_LL</span><span class="p">(</span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">request</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="o">*</span><span class="n">data</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// 构建请求数据包</span>
+<span class="w">    </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">writeReq</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">request</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="mh">0x0F</span><span class="p">)</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="p">((</span><span class="n">generate_parity</span><span class="p">(</span><span class="n">request</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="mh">0x0F</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="mi">4</span><span class="p">));</span>
+
+<span class="w">    </span><span class="c1">// 请求阶段 (8位)</span>
+<span class="w">    </span><span class="n">SPI_SwitchPhaseToWrite</span><span class="p">();</span>
+<span class="w">    </span><span class="n">SPI_TMS_Transfer</span><span class="p">(</span><span class="n">writeReq</span><span class="p">,</span><span class="w"> </span><span class="mi">8</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Turnaround阶段</span>
+<span class="w">    </span><span class="n">SPI_SwitchPhaseToListen</span><span class="p">();</span>
+<span class="w">    </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">ack</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ListenToLine</span><span class="p">(</span><span class="n">DAP_Data</span><span class="p">.</span><span class="n">swd_conf</span><span class="p">.</span><span class="n">turnaround</span><span class="p">);</span>
+
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">ack</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">DAP_TRANSFER_OK</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// 数据阶段</span>
+<span class="w">        </span><span class="o">*</span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">SWDIO_Read</span><span class="p">(</span><span class="mi">34</span><span class="p">);</span><span class="w">  </span><span class="c1">// 32位数据 + 1位奇偶校验 + 1位turnaround</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">ack</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p><strong>资源链接:</strong>
+- 项目地址: https://github.com/SushiBits/DAP405
+- 硬件设计: https://github.com/SushiBits/DAP405/tree/master/hardware
+- 技术文档: 包含在项目README中</p>
+<h3>3.2 Şahin Duran的SPI优化方案</h3>
+<p><strong>技术创新点:</strong></p>
+<ol>
+<li><strong>分块传输优化:</strong></li>
+</ol>
+<div class="codehilite"><pre><span></span><code><span class="kt">void</span><span class="w"> </span><span class="nf">calculate_xfer_sizes</span><span class="p">(</span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">input_len</span><span class="p">,</span><span class="w"> </span><span class="kt">uint8_t</span><span class="w"> </span><span class="o">*</span><span class="n">buff</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// 将n位传输分解为SPI兼容块</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">isunAligned</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">input_len</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="mi">8</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">input_len</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="mi">8</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">isGreaterThan8</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">input_len</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">8</span><span class="p">;</span>
+
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">isunAligned</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">isGreaterThan8</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">buff</span><span class="p">[</span><span class="n">IDX_8_BIT</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">input_len</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">8</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">2</span><span class="p">;</span><span class="w">  </span><span class="c1">// 8位块</span>
+<span class="w">        </span><span class="n">buff</span><span class="p">[</span><span class="n">IDX_RM1_BIT</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">4</span><span class="p">;</span><span class="w">             </span><span class="c1">// 4位余数</span>
+<span class="w">        </span><span class="n">buff</span><span class="p">[</span><span class="n">IDX_RM2_BIT</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">input_len</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">buff</span><span class="p">[</span><span class="n">IDX_8_BIT</span><span class="p">]</span><span class="o">*</span><span class="mi">8</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">buff</span><span class="p">[</span><span class="n">IDX_RM1_BIT</span><span class="p">];</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="c1">// ... 其他情况处理</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<ol>
+<li><strong>精确时序控制:</strong></li>
+<li>ACK检测优化</li>
+<li>WAIT/FAULT响应处理</li>
+<li>低频稳定性改进</li>
+</ol>
+<p><strong>资源链接:</strong>
+- 技术文章: https://medium.com/@sahin.duran.9275/cmsis-dap-compliant-debug-probe-9236206d2bf8
+- 源码仓库: https://github.com/saahinduran/STM32-JTAG-Emulator-
+- 演示视频: https://www.youtube.com/watch?v=F0JFuAMPzhQ</p>
+<hr />
+<h2>4. 高级优化方案</h2>
+<h3>4.1 STM32 DMA+GPIO并行传输</h3>
+<p><strong>理论基础:</strong> 基于ST AN4666应用笔记
+- 16位GPIO并行输出
+- DMA控制器自动传输
+- 理论最高50MHz并行传输</p>
+<p><strong>核心实现:</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="c1">// DMA配置用于并行传输</span>
+<span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">gpio_mask</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">clk_cycles</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">data_buffer</span><span class="p">;</span>
+<span class="p">}</span><span class="w"> </span><span class="n">parallel_xfer_t</span><span class="p">;</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="nf">DMA_ConfigForParallel</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">DMA1_Stream0</span><span class="o">-&gt;</span><span class="n">CR</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">DMA_SxCR_CHSEL_0</span><span class="w"> </span><span class="o">|</span>
+<span class="w">                       </span><span class="n">DMA_SxCR_MSIZE_16BIT</span><span class="w"> </span><span class="o">|</span>
+<span class="w">                       </span><span class="n">DMA_SxCR_MINC_ENABLE</span><span class="p">;</span>
+<span class="w">    </span><span class="n">DMA1_Stream0</span><span class="o">-&gt;</span><span class="n">PAR</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">uint32_t</span><span class="p">)</span><span class="o">&amp;</span><span class="n">GPIOB</span><span class="o">-&gt;</span><span class="n">ODR</span><span class="p">;</span>
+<span class="w">    </span><span class="n">DMA1_Stream0</span><span class="o">-&gt;</span><span class="n">M0AR</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">uint32_t</span><span class="p">)</span><span class="n">parallel_data</span><span class="p">;</span>
+<span class="w">    </span><span class="n">DMA1_Stream0</span><span class="o">-&gt;</span><span class="n">FCR</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">DMA_SxFCR_DMDIS</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p><strong>资源链接:</strong>
+- 应用笔记: https://www.st.com/resource/en/application_note/an4666-parallel-synchronous-transmission-using-gpio-and-dma-stmicroelectronics.pdf
+- ST社区讨论: https://community.st.com/t5/stm32-mcus-products/stm32-stm32f103c8t6-dma-performance-vs-bitbang/td-p/434106</p>
+<h3>4.2 FPGA方案</h3>
+<p><strong>技术特点:</strong>
+- USB 3.0 SuperSpeed (5Gbps)
+- 硬件JTAG状态机
+- 可达100MHz+时钟频率</p>
+<p><strong>实现框架:</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="c1">// FPGA JTAG状态机示例</span>
+<span class="k">always</span><span class="w"> </span><span class="p">@(</span><span class="k">posedge</span><span class="w"> </span><span class="n">clk</span><span class="w"> </span><span class="k">or</span><span class="w"> </span><span class="k">negedge</span><span class="w"> </span><span class="n">rst_n</span><span class="p">)</span><span class="w"> </span><span class="k">begin</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">rst_n</span><span class="p">)</span><span class="w"> </span><span class="k">begin</span>
+<span class="w">        </span><span class="n">state</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="n">IDLE</span><span class="p">;</span>
+<span class="w">    </span><span class="k">end</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="k">begin</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+<span class="w">            </span><span class="nl">IDLE:</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">tms</span><span class="p">)</span><span class="w"> </span><span class="n">state</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="n">SHIFT_DR</span><span class="p">;</span>
+<span class="w">            </span><span class="nl">SHIFT_DR:</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">count</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mh">4</span><span class="p">)</span><span class="w"> </span><span class="n">state</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="n">CAPTURE_DR</span><span class="p">;</span>
+<span class="w">            </span><span class="nl">CAPTURE_DR:</span><span class="w"> </span><span class="n">state</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="n">EXIT1_DR</span><span class="p">;</span>
+<span class="w">            </span><span class="c1">// ... 其他状态</span>
+<span class="w">        </span><span class="k">endcase</span>
+<span class="w">    </span><span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+
+<p><strong>资源链接:</strong>
+- Artecit FPGA方案: https://www.artekit.eu/products/debug/ak-cmsis-dap/
+- DSTREAM-ST参考: https://www.arm.com/products/development-tools/debug-probes/dstream-st</p>
+<hr />
+        </div>
+
+        <div class="footer">
+            <p>© 2024 技术文档 | 基于 markdown 转换生成</p>
+            <p>本文档为技术学习参考，请遵守相关开源协议</p>
+        </div>
+    </div>
+</body>
+</html>

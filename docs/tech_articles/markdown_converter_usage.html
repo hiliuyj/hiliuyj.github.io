@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown 转换脚本使用指南</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: linear-gradient(135deg, #2c3e50 0%, #4a6491 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(90deg, #3498db, #2ecc71);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .info-box {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-left: 4px solid #3498db;
+        }
+
+        .info-box.warning {
+            border-left-color: #e74c3c;
+            background: #fff5f5;
+        }
+
+        .info-box.success {
+            border-left-color: #2ecc71;
+            background: #f0fff4;
+        }
+
+        h2 {
+            color: #2c3e50;
+            margin: 1.5rem 0 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #3498db;
+        }
+
+        h3 {
+            color: #34495e;
+            margin: 1rem 0 0.5rem;
+        }
+
+        .content {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .content h1, .content h2, .content h3, .content h4, .content h5, .content h6 {
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .content p {
+            margin-bottom: 1rem;
+        }
+
+        .content ul, .content ol {
+            margin-left: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .content li {
+            margin-bottom: 0.5rem;
+        }
+
+        .code-block {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 1rem;
+            border-radius: 5px;
+            margin: 1rem 0;
+            overflow-x: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+        }
+
+        .code-block pre {
+            margin: 0;
+        }
+
+        .highlight {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        .note {
+            background: #fff9e6;
+            border-left: 4px solid #f39c12;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 5px 5px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            background: white;
+            border-radius: 5px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        th {
+            background: #3498db;
+            color: white;
+            padding: 0.75rem;
+            text-align: left;
+        }
+
+        td {
+            padding: 0.75rem;
+            border-bottom: 1px solid #ddd;
+        }
+
+        tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid #ddd;
+            color: #7f8c8d;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .content {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Markdown 转换脚本使用指南</h1>
+        </header>
+
+        <div class="info-box">
+            <h3>📋 脚本概述</h3>
+            <p>本脚本使用 Python 的 <span class="highlight">markdown</span> 库将 Markdown 文件转换为 HTML 文件，并自动套用与网站一致的样式模板。</p>
+            <p>脚本位置：<a href="convert_md_to_html.py" download>convert_md_to_html.py</a>（位于本站 tech_articles 目录，点击可下载）</p>
+            
+        </div>
+
+        <div class="content">
+            <h2>📝 前置条件</h2>
+            <p>确保系统中已安装以下依赖：</p>
+            <ul>
+                <li>Python 3.x</li>
+                <li>Python markdown 库：<code>pip install markdown</code></li>
+            </ul>
+
+            <h2>🚀 使用方法</h2>
+            <h3>基本命令</h3>
+            <div class="code-block">
+<pre>python3 docs/tech_articles/convert_md_to_html.py &lt;input.md&gt; &lt;output.html&gt;</pre>
+            </div>
+            <p>例如：</p>
+            <div class="code-block">
+<pre>python3 docs/tech_articles/convert_md_to_html.py docs/tech_articles/swd_jtag_relize.md docs/tech_articles/swd_jtag_relize.html</pre>
+            </div>
+
+            <h3>批量转换（Shell 脚本示例）</h3>
+            <div class="code-block">
+<pre>#!/bin/bash
+# 转换所有 tech_articles 目录下的 .md 文件
+for md_file in docs/tech_articles/*.md; do
+    html_file="docs/tech_articles/$(basename "$md_file" .md).html"
+    python3 docs/tech_articles/convert_md_to_html.py "$md_file" "$html_file"
+    echo "已转换: $md_file → $html_file"
+done</pre>
+            </div>
+
+            <h2>🎨 样式定制</h2>
+            <p>脚本使用的 HTML 模板位于 <code>convert_md_to_html.py</code> 文件的 <code>get_template()</code> 函数中。您可以修改该函数中的 CSS 样式来调整输出页面的外观。</p>
+            <p>主要样式类：</p>
+            <ul>
+                <li><code>.container</code> - 页面容器</li>
+                <li><code>header</code> - 标题区域</li>
+                <li><code>.content</code> - 主要内容区域</li>
+                <li><code>.code-block</code> - 代码块样式</li>
+                <li><code>.info-box</code> - 信息框样式</li>
+            </ul>
+
+            <h2>⚠️ 注意事项</h2>
+            <div class="note">
+                <p>1. 脚本会覆盖已存在的输出文件，请确保备份重要文件。</p>
+                <p>2. 转换后的 HTML 文件中的链接需要手动更新为正确的相对路径。</p>
+                <p>3. 复杂的 Markdown 扩展语法可能需要额外的 Python 扩展库支持。</p>
+            </div>
+
+            <h2>🔧 故障排除</h2>
+            <h3>常见问题</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>问题</th>
+                        <th>解决方案</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>ImportError: No module named 'markdown'</td>
+                        <td>运行 <code>pip install markdown</code> 安装库</td>
+                    </tr>
+                    <tr>
+                        <td>中文编码错误</td>
+                        <td>确保 Markdown 文件使用 UTF-8 编码</td>
+                    </tr>
+                    <tr>
+                        <td>样式未正确应用</td>
+                        <td>检查 CSS 路径或内联样式是否完整</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="info-box success">
+            <h3>✅ 转换成功示例</h3>
+            <p>本站的 <a href="swd_jtag_relize.html">SWD/JTAG 实现与调试</a> 文档就是使用此脚本从 Markdown 转换而来。</p>
+            <p>源文件：<code>docs/tech_articles/swd_jtag_relize.md</code></p>
+            <p>生成文件：<code>docs/tech_articles/swd_jtag_relize.html</code></p>
+        </div>
+
+        <div class="footer">
+            <p>© 2024 技术文档工具指南 | 最后更新：2024年</p>
+            <p>本脚本为开源工具，遵循 MIT 许可协议</p>
+        </div>
+    </div>
+</body>
+</html>
